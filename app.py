@@ -1,7 +1,10 @@
-
 import streamlit as st
 import joblib
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
 
 # Load the model and scaler
 knn = joblib.load('knn_model.pkl')
@@ -26,3 +29,23 @@ if st.button("Predict"):
     # Make prediction
     prediction = knn.predict(input_data_scaled)
     st.write(f"Prediction: {'Churn' if prediction[0] == 1 else 'No Churn'}")
+
+# Adding Insight Graphs
+st.subheader("Insight Graphs")
+# Creating a dummy dataset (replace with your real data)
+data = {
+    'Day Minutes': np.random.rand(100) * 100,
+    'Evening Minutes': np.random.rand(100) * 100
+}
+df = pd.DataFrame(data)
+
+# Plot a Line Chart using Plotly
+fig = px.line(df, x="Day Minutes", y="Evening Minutes", title="Day Minutes vs Evening Minutes")
+st.plotly_chart(fig)
+
+# Seaborn Bar Plot showing churn distribution
+st.subheader("Churn Distribution")
+churn_data = {'Churn': ['Yes', 'No'], 'Count': [45, 55]}  # Example data
+churn_df = pd.DataFrame(churn_data)
+fig2 = sns.barplot(x='Churn', y='Count', data=churn_df)
+st.pyplot(fig2.figure)
