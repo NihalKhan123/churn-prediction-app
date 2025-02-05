@@ -61,17 +61,27 @@ if uploaded_file:
 # Visualization
 st.subheader("📈 Churn Distribution")
 
-if uploaded_file and 'Prediction' in df.columns:
-    # Only show churn distribution if predictions have been made
-    churn_data = pd.DataFrame({
-        'Churn': ['Yes', 'No'], 
-        'Count': [
-            df[df['Prediction'] == 1].shape[0], 
-            df[df['Prediction'] == 0].shape[0]
-        ]
-    })
-    fig, ax = plt.subplots()
-    ax.bar(churn_data['Churn'], churn_data['Count'], color=['red', 'green'])
-    st.pyplot(fig)
-elif uploaded_file:
-    st.warning("Upload data and predict first to see churn distribution.")
+# Ensure predictions have been made and the 'Prediction' column exists
+if uploaded_file:
+    if 'Prediction' in df.columns:
+        # Group the data by predictions and count occurrences
+        churn_data = pd.DataFrame({
+            'Churn': ['Yes', 'No'], 
+            'Count': [
+                df[df['Prediction'] == 1].shape[0],  # Count of churn (1)
+                df[df['Prediction'] == 0].shape[0]   # Count of no churn (0)
+            ]
+        })
+
+        # Ensure the chart has data
+        if churn_data['Count'].sum() > 0:
+            fig, ax = plt.subplots()
+            ax.bar(churn_data['Churn'], churn_data['Count'], color=['red', 'green'])
+            ax.set_ylabel('Count')
+            ax.set_title('Churn Distribution')
+            st.pyplot(fig)
+        else:
+            st.warning("No predictions to display.")
+    else:
+        st.warning("Make sure predictions are made before displaying churn distribution.")
+
