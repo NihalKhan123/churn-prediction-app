@@ -58,11 +58,20 @@ if uploaded_file:
         st.error("Uploaded data does not contain the required features.")
 
 # Visualization
+# Visualization
 st.subheader("📈 Churn Distribution")
-if 'Prediction' in df.columns:
-    churn_data = pd.DataFrame({'Churn': ['Yes', 'No'], 'Count': [df[df['Prediction'] == 1].shape[0], df[df['Prediction'] == 0].shape[0]]})
+
+if uploaded_file and 'Prediction' in df.columns:
+    # Only show churn distribution if predictions have been made
+    churn_data = pd.DataFrame({
+        'Churn': ['Yes', 'No'], 
+        'Count': [
+            df[df['Prediction'] == 1].shape[0], 
+            df[df['Prediction'] == 0].shape[0]
+        ]
+    })
     fig, ax = plt.subplots()
     ax.bar(churn_data['Churn'], churn_data['Count'], color=['red', 'green'])
     st.pyplot(fig)
-else:
+elif uploaded_file:
     st.warning("Upload data and predict first to see churn distribution.")
