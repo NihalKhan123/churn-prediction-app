@@ -1,4 +1,3 @@
-
 import streamlit as st
 import joblib
 import numpy as np
@@ -23,20 +22,20 @@ eve_charge = st.sidebar.number_input("🌙 Evening Charge", min_value=0.0, step=
 eve_mins = st.sidebar.number_input("🌆 Evening Minutes", min_value=0.0, step=0.1)
 
 # Convert input to binary for model
-intl_plan = 1 if intl_plan == "Yes" else 0
+intl_plan_1 = 1 if intl_plan == "Yes" else 0  # Adjusted to match transformed_cleaned_data
 
 # Centered prediction button
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     if st.button("🚀 Predict Churn"):
         # Prepare input data
-        input_data = np.array([[day_charge, day_mins, intl_plan, eve_charge, eve_mins]])
+        input_data = np.array([[day_charge, day_mins, intl_plan_1, eve_charge, eve_mins]])
         input_data_scaled = scaler.transform(input_data)
-        
+
         # Make prediction
         prediction = knn.predict(input_data_scaled)
         result = "❌ Churn" if prediction[0] == 1 else "✅ No Churn"
-        
+
         # Display result
         st.success(f"### Prediction: {result}")
 
@@ -46,16 +45,24 @@ uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("### Uploaded Data", df.head())
-    
-    if st.button("📊 Predict for Uploaded Data"):
-        df_scaled = scaler.transform(df)
-        df["Prediction"] = knn.predict(df_scaled)
-        st.write("### Predictions", df)
-        st.download_button("📥 Download Results", df.to_csv(index=False), "results.csv", "text/csv")
+
+    # Ensure the features match the ones in the uploaded file
+    batch_features = ['day.charge', 'day.mins', 'intl.plan_1', 'eve.charge', 'eve.mins']
+    if all(feature in df.columns for feature in batch_features):
+        if st.button("📊 Predict for Uploaded Data"):
+            df_scaled = scaler.transform(df[batch_features])  # Only scale the relevant features
+            df["Prediction"] = knn.predict(df_scaled)
+            st.write("### Predictions", df)
+            st.download_button("📥 Download Results", df.to_csv(index=False), "results.csv", "text/csv")
+    else:
+        st.error("Uploaded data does not contain the required features.")
 
 # Visualization
 st.subheader("📈 Churn Distribution")
-churn_data = pd.DataFrame({'Churn': ['Yes', 'No'], 'Count': [df[df['Prediction'] == 1].shape[0], df[df['Prediction'] == 0].shape[0]]})
-fig, ax = plt.subplots()
-ax.bar(churn_data['Churn'], churn_data['Count'], color=['red', 'green'])
-st.pyplot(fig)
+if 'Prediction' in df.columns:
+    churn_data = pd.DataFrame({'Churn': ['Yes', 'No'], 'Count': [df[df['Prediction'] == 1].shape[0], df[df['Prediction'] == 0].shape[0]]})
+    fig, ax = plt.subplots()
+    ax.bar(churn_data['Churn'], churn_data['Count'], color=['red', 'green'])
+    st.pyplot(fig)
+else:
+    st.warning("Upload data and predict first to see churn distribution.")
